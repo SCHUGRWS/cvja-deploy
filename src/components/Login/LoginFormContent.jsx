@@ -21,11 +21,7 @@ class LoginFormContent extends React.Component {
             <div>
                 <CssBaseLine />
                 <Paper>
-<<<<<<< HEAD
                     <form onSubmit={e => this.props.onSubmit(e)} type='POST' className={this.props.classes.form}>
-=======
-                    <form onSubmit={e => props.onSubmit(e)} type='POST' className={this.props.classes.form}>
->>>>>>> 6763903d958a2afdd6ca007cfe4c732304c9c936
                         <div className={this.props.classes.loginIcon}>
                             <Avatar>
                                 <LockIcon />
