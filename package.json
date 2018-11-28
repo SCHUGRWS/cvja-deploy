@@ -3,13 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.jsx",
-  "engines": {
-    "node": "10.13.0"
-  },
   "scripts": {
-    "start-dev": "webpack-dev-server --mode development --open",
+    "start": "webpack-dev-server --mode development --open",
     "build": "webpack --mode production",
-    "start": "webpack --mode production",
     "heroku-postbuild": "webpack --mode production"
   },
   "keywords": [],
@@ -21,6 +17,8 @@
     "amazon-cognito-identity-js": "^3.0.2",
     "amazon-cognito-js": "^1.1.0",
     "axios": "^0.18.0",
+    "html2canvas": "^1.0.0-alpha.12",
+    "jspdf": "^1.4.1",
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
     "react-dom": "^16.5.2"

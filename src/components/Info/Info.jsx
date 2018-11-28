@@ -1,98 +1,19 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import { withStyles } from '@material-ui/core/styles';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
+import { withStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
 import SaveIcon from '@material-ui/icons/Save';
-import Button from '@material-ui/core/Button';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import React from 'react';
+import InfoClass from '../../assets/classes/entities/Info';
+import styles from './InfoTheme';
 
-const styles = theme => ({
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
+const estados = [
+    {
+        label: ''
     },
-    button: {
-        margin: theme.spacing.unit,
-        width: '150px',
-    },
-    leftIcon: {
-        marginRight: theme.spacing.unit,
-    },
-    rightIcon: {
-        marginLeft: theme.spacing.unit,
-    },
-    iconSmall: {
-        fontSize: 20,
-    },
-    card: {
-        minWidth: 275,
-        width: '780px',
-        margin: '100px 0 0 450px',
-    },
-    bullet: {
-        display: 'inline-block',
-        margin: '0 2px',
-        transform: 'scale(0.8)',
-    },
-    title: {
-        fontSize: 16,
-    },
-    pos: {
-        marginBottom: 12,
-    },
-    textField: {
-        marginLeft: theme.spacing.unit,
-        marginRight: theme.spacing.unit,
-    },
-    dense: {
-        marginTop: 16,
-    },
-    menu: {
-        width: 200,
-    },
-    bootstrapRoot: {
-        boxShadow: 'none',
-        textTransform: 'none',
-        fontSize: 16,
-        padding: '6px 12px',
-        border: '1px solid',
-        backgroundColor: '#2999c4',
-        borderColor: '#007bff',
-        fontFamily: [
-            '-apple-system',
-            'BlinkMacSystemFont',
-            '"Segoe UI"',
-            'Roboto',
-            '"Helvetica Neue"',
-            'Arial',
-            'sans-serif',
-            '"Apple Color Emoji"',
-            '"Segoe UI Emoji"',
-            '"Segoe UI Symbol"',
-        ].join(','),
-        '&:hover': {
-            backgroundColor: '#0069d9',
-            borderColor: '#0062cc',
-        },
-        '&:active': {
-            boxShadow: 'none',
-            backgroundColor: '#56cde8',
-            borderColor: '#005cbf',
-        },
-        '&:focus': {
-            boxShadow: '0 0 0 0.2rem rgba(0,123,255,.5)',
-        },
-    },
-    margin: {
-        margin: theme.spacing.unit,
-    },
-
-});
-
-const estado = [
     {
         value: 'SC',
         label: 'SC',
@@ -109,24 +30,70 @@ const estado = [
 
 
 class Info extends React.Component {
-    state = {
-        estado: 'UF',
-    };
+    constructor(props) {
+        super(props);
 
-    handleChange = name => event => {
-        this.setState({
-            [name]: event.target.value,
-        });
-    };
+        this.state = {
+            nome: '',
+            dataNascimento: '',
+            rg: '',
+            cpf: '',
+            cep: '',
+            estado: '',
+            cidade: '',
+            cnh: '',
+            endereco: '',
+            numero: '',
+            bairro: '',
+            telefone: '',
+            celular: '',
+            complemento: ''
+        };
 
+        this.info = new InfoClass()
+        this.info.idCurriculum = sessionStorage.getItem('idCurriculum')
+
+        this.info.getFirst()
+            .then((response) => {
+                this.setState(Object.assign({}, this.state, response));
+                this.info = Object.assign({}, this.info, response)
+            })
+            .catch((err) => { })
+
+    }
+
+    handleChange(propertie, event) {
+        this.setState(Object.assign({}, this.state, { [propertie]: event.target.value }));
+        this.info = Object.assign(new InfoClass(), this.info, { [propertie]: event.target.value });
+    }
+
+    onSubmit(e) {
+        e.preventDefault();
+        this.info.create()
+            .then((data) => {
+                alert("Info criado")
+                this.info.idInfo = data.data;
+            })
+            .catch((err) => {
+                alert(err.data.errMessage)
+            })
+    }
+
+    getOptions() {
+        return (estados.map(option => (
+            <option key={option.value} value={option.value}>
+                {option.label}
+            </option>
+        )))
+    }
     render() {
         const { classes } = this.props;
 
         return (
-            <div id="inicio">
+            <div id="Info" className={classes.centraliza}>
                 <Card className={classes.card}>
                     <CardContent>
-                        <form className={classes.container} noValidate autoComplete="off">
+                        <form className={classes.container} noValidate autoComplete="off" onSubmit={e => this.onSubmit(e)}>
                             <TextField
                                 id="outlined-name"
                                 label="Nome"
@@ -135,6 +102,8 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
+                                value={this.state.nome}
+                                onChange={e => this.handleChange('nome', e)}
                             />
 
                             <TextField
@@ -144,9 +113,11 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
+                                value={this.state.dataNascimento}
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
+                                onChange={e => this.handleChange('dataNascimento', e)}
                             />
 
                             <TextField
@@ -155,6 +126,9 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
+                                value={this.state.rg}
+                                style={{ width: 245 }}
+                                onChange={e => this.handleChange('rg', e)}
                             />
 
                             <TextField
@@ -164,57 +138,75 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
+                                style={{ width: 245 }}
+                                value={this.state.cpf}
+                                onInput={e => e.target.value = Math.max(0, parseInt(e.target.value)).toString().slice(0, 11)}
+                                onChange={e => this.handleChange('cpf', e)}
                             />
 
                             <TextField
                                 id="outlined-CEP"
                                 label="CEP"
+                                value={this.state.cep}
                                 type="number"
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
-                                style={{ width: 172 }}
+                                style={{ width: 300 }}
+                                onChange={e => this.handleChange('cep', e)}
                             />
 
                             <TextField
                                 id="outlined-estado"
                                 select
-                                style={{ width: 58 }}
+                                style={{ width: 80 }}
                                 label="UF"
                                 className={classes.textField}
+                                margin="normal"
+                                variant="outlined"
                                 value={this.state.estado}
-                                onChange={this.handleChange('estado')}
                                 SelectProps={{
+                                    native: true,
                                     MenuProps: {
                                         className: classes.menu,
                                     },
                                 }}
-                                margin="normal"
-                                variant="outlined"
+                                onChange={e => this.handleChange('estado', e)}
                             >
-                                {estado.map(option => (
-                                    <MenuItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </MenuItem>
-                                ))}
+                                {this.getOptions()}
                             </TextField>
 
                             <TextField
                                 id="outlined-cidade"
                                 label="Cidade"
                                 className={classes.textField}
+                                value={this.state.cidade}
                                 margin="normal"
                                 variant="outlined"
-                                style={{ width: 172 }}
+                                style={{ width: 300 }}
+                                onChange={e => this.handleChange('cidade', e)}
+                            />
+
+                            <TextField
+                                id="outlined-cnh"
+                                label="CNH"
+                                fullWidth
+                                className={classes.textField}
+                                value={this.state.cnh}
+                                onChange={e => this.handleChange('cnh', e)}
+                                margin="normal"
+                                variant="outlined"
                             />
 
                             <TextField
                                 id="outlined-endereco"
                                 label="Endereço"
                                 className={classes.textField}
+                                value={this.state.endereco}
                                 margin="normal"
                                 variant="outlined"
-                                style={{ width: 200 }}
+                                style={{ width: 302 }}
+                                onChange={e => this.handleChange('endereco', e)}
                             />
 
                             <TextField
@@ -224,7 +216,9 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
+                                value={this.state.numero}
                                 style={{ width: 80 }}
+                                onChange={e => this.handleChange('numero', e)}
                             />
 
                             <TextField
@@ -233,16 +227,9 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
-                                style={{ width: 215 }}
-                            />
-
-                            <TextField
-                                id="outlined-email"
-                                label="E-mail"
-                                fullWidth
-                                className={classes.textField}
-                                margin="normal"
-                                variant="outlined"
+                                value={this.state.bairro}
+                                style={{ width: 300 }}
+                                onChange={e => this.handleChange('bairro', e)}
                             />
 
                             <TextField
@@ -250,15 +237,27 @@ class Info extends React.Component {
                                 label="Telefone"
                                 className={classes.textField}
                                 margin="normal"
+                                type="number"
                                 variant="outlined"
+                                style={{ width: 350 }}
+                                value={this.state.telefone}
+                                onInput={e => e.target.value = Math.max(0, parseInt(e.target.value)).toString().slice(0, 11)}
+                                onChange={e => this.handleChange('telefone', e)}
                             />
 
                             <TextField
                                 id="outlined-celular"
                                 label="Celular"
                                 className={classes.textField}
+                                type="number"
                                 margin="normal"
                                 variant="outlined"
+                                style={{ width: 350 }}
+                                value={this.state.celular}
+                                onInput={e => {
+                                    e.target.value = Math.max(0, parseInt(e.target.value)).toString().slice(0, 11)
+                                }}
+                                onChange={e => this.handleChange('celular', e)}
                             />
 
                             <TextField
@@ -267,17 +266,19 @@ class Info extends React.Component {
                                 className={classes.textField}
                                 margin="normal"
                                 variant="outlined"
-                                style={{ width: 405 }}
+                                value={this.state.complemento}
+                                fullWidth
+                                multiline
+                                rows="6"
+                                onChange={e => this.handleChange('complemento', e)}
                             />
-                        </form>
 
-                        <center>
-                            <Button variant="contained" color="primary" disableRipple
+                            <Button type="submit" variant="contained" color="primary" disableRipple
                                 className={classNames(classes.margin, classes.bootstrapRoot, classes.button)} size="medium">
                                 <SaveIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
                                 Salvar
                             </Button>
-                        </center>
+                        </form>
                     </CardContent>
                 </Card>
             </div>

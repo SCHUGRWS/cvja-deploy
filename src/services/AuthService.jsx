@@ -1,11 +1,13 @@
-import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
+import { AuthenticationDetails, CognitoUser, CognitoUserPool, CognitoUserAttribute } from 'amazon-cognito-identity-js';
 import axios from 'axios';
 import { ConfigAPI, ConfigCognito } from '../assets/awsConfig';
+import Curriculum from '../assets/classes/entities/Curriculum'
 
 export const signInService = (user, password) => {
 
     return new Promise((res, rej) => {
         const configCognito = new ConfigCognito()
+        let curriculum = new Curriculum(user.email)
 
         var authenticationData = {
             Username: user.email,
@@ -25,11 +27,39 @@ export const signInService = (user, password) => {
         cognitoUser.authenticateUser(authenticationDetails, {
             onSuccess: (result) => {
                 sessionStorage.setItem('sessionKey', result.idToken.jwtToken);
-                res(true);
+                curriculum.getFirst()
+                    .then((response) => {
+                        sessionStorage.setItem('idCurriculum', response.idCurriculum);
+                        res(true);
+                    })
+                    .catch((err) => {
+                        curriculum.create()
+                            .then((response) => {
+                                sessionStorage.setItem('idCurriculum', response.data);
+                                if (sessionStorage.getItem('idCurriculum') != null) {
+                                    res(true);
+                                } else {
+                                    rej(false)
+                                }
+                            })
+                            .catch((err) => {
+                                rej(err)
+                            })
+                    })
             },
             onFailure: (err) => {
-                console.log(err.message);
-                rej(false)
+
+                if (err.code === "NotAuthorizedException") {
+                    alert("Senha Incorreta!")
+                } else if (err.code === "UserNotFoundException") {
+                    alert("Usuário não cadastrado!")
+                } else if (err.code === "UserNotConfirmedException") {
+                    alert("Usuário não confirmou o email!")
+                } else {
+                    alert("Erro não tratado: " + err.code)
+                }
+
+                rej(err)
             },
             newPasswordRequired: function (userAttributes, requiredAttributes) {
                 // Get these details and call 
@@ -41,22 +71,44 @@ export const signInService = (user, password) => {
     });
 }
 
-export const signUpService = (user) => {
-    const configApi = new ConfigAPI()
+export const signUpService = (user, password) => {
 
     return new Promise((res, rej) => {
-        axios({
-            method: 'post',
-            url: configApi.getUserPersistenceUrl + 'users',
-            data: {
-                email: user.email
+
+        const configCognito = new ConfigCognito()
+
+        var poolData = configCognito.getUserPoolData();
+        var userPool = new CognitoUserPool(poolData);
+
+        let attributeList = [];
+
+        let dataEmail = {
+            Name: 'email',
+            Value: user.email
+        };
+
+        let attributeEmail = new CognitoUserAttribute(dataEmail);
+
+        attributeList.push(attributeEmail);
+
+        userPool.signUp(user.email, password, attributeList, null, function (err, result) {
+            if (err) {
+                if (err.code === "UsernameExistsException") {
+                    alert("O email já existe")
+                } else if (err.code === "InvalidParameterException") {
+                    alert("Informações inválidas")
+                } else if (err.code === "InvalidPasswordException") {
+                    alert("A senha precisa de no minimo 8 caracteres")
+                } else {
+                    alert("Erro não tratado: " + err.code)
+                }
+
+                rej(err);
+            } else {
+                alert("Um email foi enviado para validar a sua conta! Após validar a conta tente acessar novamente!");
+                res(true);
             }
         })
-            .then(response => res(true))
-            .catch((error) => {
-                console.error(error.data);
-                rej(false);
-            });
     });
 }
 
@@ -75,9 +127,10 @@ export const sessionAuthenticate = () => {
             return;
         }
         else {
-            console.log(axios.defaults.headers)
-            axios.get({
-                url: `https://cvjaapi.appjs.com.br/userdata/userdata/heath`
+            axios.defaults.headers.common['Authorization'] = sessionStorage.getItem('sessionKey')
+            axios({
+                method: 'get',
+                url: "https://cvjaapi.appjs.com.br/userdata/health"
             })
                 .then(() => res(true))
                 .catch(() => rej(false));

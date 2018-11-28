@@ -19,7 +19,7 @@ class Login extends Component {
 
     onLinkClick() {
         let isLogin = !this.state.isLogin;
-        this.setState(Object.assign({}, this.state, {isLogin: isLogin}))
+        this.setState(Object.assign({}, this.state, { isLogin: isLogin }))
     }
 
     onSubmit(e) {
@@ -27,10 +27,24 @@ class Login extends Component {
         const user = new User(e.target.email.value, null);
         if (this.state.isLogin) {
             signInService(user, e.target.password.value)
-            .then(res => this.props.toggleSidebar())
-            .catch(err => this.props.toggleSidebar())
+                .then(res => this.props.toggleSidebar())
+                .catch(rej => {
+                    if(rej.code === "UserNotFoundException"){
+                        this.onLinkClick()
+                    }
+                })
         } else {
-            // TODO: signUpService();
+            if (e.target.passwordVerify.value === e.target.password.value) {
+                signUpService(user, e.target.password.value)
+                .then(() => this.onLinkClick())
+                .catch(rej => {
+                    if(err.code != "InvalidParameterException"&&err.code != "InvalidPasswordException"){
+                        this.onLinkClick()
+                    }
+                })
+            } else {
+                alert("Senhas não são iguais!")
+            }
         }
     }
 
